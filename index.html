@@ -44,6 +44,81 @@
 html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
 body { font-family: 'Inter', sans-serif; font-size: 14px; background: var(--bg); color: var(--text); min-height: 100vh; }
 
+/* ── LOGIN SCREEN ── */
+#login-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(135deg, #1a4a6b 0%, #0081b0 50%, #25638f 100%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+#login-screen.hidden { display: none; }
+.login-card {
+  background: #fff; border-radius: 20px; padding: 40px 36px;
+  width: 100%; max-width: 400px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.25);
+  animation: loginIn .35s cubic-bezier(.4,0,.2,1);
+}
+@keyframes loginIn { from { opacity:0; transform:translateY(24px) scale(.97); } to { opacity:1; transform:none; } }
+.login-logo-wrap { text-align: center; margin-bottom: 28px; }
+.login-logo-wrap img { height: 52px; object-fit: contain; margin-bottom: 10px; }
+.login-app-name { font-size: 17px; font-weight: 700; color: var(--primary); }
+.login-app-sub  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.login-title { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+.login-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+.login-group { margin-bottom: 18px; }
+.login-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+.login-input-wrap { position: relative; }
+.login-input {
+  width: 100%; padding: 11px 14px; border: 1.5px solid var(--border);
+  border-radius: var(--radius-md); font-size: 14px; font-family: 'Inter', sans-serif;
+  color: var(--text); outline: none; transition: border-color .15s;
+  background: #fafbfc;
+}
+.login-input:focus { border-color: var(--teal); background: #fff; }
+.login-input.error { border-color: var(--danger); }
+.toggle-pass {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: var(--text-faint);
+  padding: 0; display: flex; align-items: center;
+}
+.toggle-pass:hover { color: var(--text-muted); }
+.login-error {
+  display: none; background: var(--danger-bg); border: 1px solid #fca5a5;
+  border-radius: var(--radius-md); padding: 10px 14px;
+  font-size: 13px; color: var(--danger); margin-bottom: 18px; text-align: center;
+}
+.login-error.show { display: block; }
+.btn-login {
+  width: 100%; padding: 13px; border: none; border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--teal), var(--primary));
+  color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: opacity .15s; letter-spacing: .01em;
+}
+.btn-login:hover { opacity: .9; }
+.btn-login:disabled { opacity: .6; cursor: not-allowed; }
+.login-footer { text-align: center; margin-top: 20px; font-size: 11px; color: var(--text-faint); }
+
+/* ── TOPBAR USER CHIP ── */
+.user-chip {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 12px 5px 8px; border: 1px solid var(--border);
+  border-radius: 999px; background: var(--bg); cursor: default;
+  font-size: 12px; font-weight: 600; color: var(--text-muted);
+}
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.btn-logout {
+  display: flex; align-items: center; gap: 5px; padding: 6px 11px;
+  border: 1px solid #fca5a5; border-radius: var(--radius-sm);
+  background: #fff; color: var(--danger); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all .15s;
+}
+.btn-logout:hover { background: var(--danger-bg); }
+
 /* ── LAYOUT ── */
 .app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
@@ -393,6 +468,43 @@ body { font-family: 'Inter', sans-serif; font-size: 14px; background: var(--bg);
   <p>Sincronizando con la nube...</p>
 </div>
 
+<!-- ══════════════ PANTALLA DE LOGIN ══════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo-wrap">
+      <div class="login-app-name">Tooltek SpA</div>
+      <div class="login-app-sub">Gestor de Cheques Rechazados</div>
+    </div>
+    <div class="login-title">Bienvenido</div>
+    <div class="login-subtitle">Ingresa tus credenciales para continuar</div>
+
+    <div id="login-error" class="login-error">Usuario o contraseña incorrectos</div>
+
+    <div class="login-group">
+      <label>Usuario</label>
+      <div class="login-input-wrap">
+        <input type="text" id="login-usuario" class="login-input" placeholder="Tu usuario" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+    </div>
+    <div class="login-group">
+      <label>Contraseña</label>
+      <div class="login-input-wrap">
+        <input type="password" id="login-pass" class="login-input" placeholder="Tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="toggle-pass" type="button" onclick="togglePass()" title="Mostrar/ocultar contraseña">
+          <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <button class="btn-login" id="btn-login" onclick="doLogin()">
+      Ingresar
+    </button>
+
+    <div class="login-footer">🔒 Acceso restringido · Solo personal autorizado</div>
+  </div>
+</div>
+<!-- ═════════════════════════════════════════════ -->
+
 <div class="app">
   <!-- TOPBAR -->
   <header class="topbar">
@@ -421,6 +533,14 @@ body { font-family: 'Inter', sans-serif; font-size: 14px; background: var(--bg);
     </nav>
 
     <div class="topbar-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="topbar-avatar">A</div>
+        <span id="topbar-username">Admin</span>
+      </div>
+      <button class="btn-logout" onclick="cerrarSesion()" title="Cerrar sesión">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Salir
+      </button>
       <button class="btn-icon" onclick="cargarDesdeNube()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
         Sincronizar
@@ -854,12 +974,117 @@ body { font-family: 'Inter', sans-serif; font-size: 14px; background: var(--bg);
 <div class="print-area" id="print-area"></div>
 
 <script>
+// ══════════════════════════════════════════════════════
+//  CONFIGURACIÓN
+// ══════════════════════════════════════════════════════
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxdfEPB4ybESUHg1iEgrB9kgCye5P_bM9sI0PZQOYdCVxj71V-axkFD35QAePO9mBr0jA/exec";
+const _k = atob("ZjU0MzQ0YzMzNjE1YTM0ZjJhMmU5NjNlMzg2MWMyMzMwZjkxMjQzMjQzOTk5MjMwYTNhYjNkMWFiZWNiNGI0Yw=="); // API Key ofuscada
+const SESSION_HOURS = 8;
+
+// ══════════════════════════════════════════════════════
+//  UTILIDADES DE LOGIN
+// ══════════════════════════════════════════════════════
+async function sha256(msg) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function togglePass() {
+  const inp = document.getElementById('login-pass');
+  const ico = document.getElementById('eye-icon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    ico.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  } else {
+    inp.type = 'password';
+    ico.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+
+async function doLogin() {
+  const usuario = document.getElementById('login-usuario').value.trim();
+  const pass    = document.getElementById('login-pass').value;
+  const errEl   = document.getElementById('login-error');
+  const btnEl   = document.getElementById('btn-login');
+
+  if (!usuario || !pass) {
+    errEl.textContent = 'Completa usuario y contraseña.';
+    errEl.classList.add('show'); return;
+  }
+
+  btnEl.disabled = true;
+  btnEl.textContent = 'Verificando…';
+  errEl.classList.remove('show');
+
+  try {
+    const hash = await sha256(pass);
+    const res  = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'login', usuario, hash, apiKey: _k })
+    });
+    const json = await res.json();
+
+    if (json.ok) {
+      // Guardar sesión con expiración
+      const session = { usuario: json.usuario || usuario, expira: Date.now() + SESSION_HOURS * 3600000 };
+      sessionStorage.setItem('tooltek_session', JSON.stringify(session));
+      iniciarApp(session.usuario);
+    } else {
+      errEl.textContent = json.msg || 'Usuario o contraseña incorrectos.';
+      errEl.classList.add('show');
+      document.getElementById('login-pass').classList.add('error');
+    }
+  } catch(e) {
+    errEl.textContent = 'Error de conexión. Intenta nuevamente.';
+    errEl.classList.add('show');
+  } finally {
+    btnEl.disabled = false;
+    btnEl.textContent = 'Ingresar';
+  }
+}
+
+function iniciarApp(usuario) {
+  document.getElementById('login-screen').classList.add('hidden');
+  // Actualizar chip de usuario en topbar
+  const inicial = (usuario || 'U').charAt(0).toUpperCase();
+  document.getElementById('topbar-avatar').textContent   = inicial;
+  document.getElementById('topbar-username').textContent = usuario;
+  cargarDesdeNube();
+}
+
+function cerrarSesion() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  sessionStorage.removeItem('tooltek_session');
+  location.reload();
+}
+
+function verificarSesion() {
+  const raw = sessionStorage.getItem('tooltek_session');
+  if (!raw) return false;
+  try {
+    const s = JSON.parse(raw);
+    if (Date.now() > s.expira) { sessionStorage.removeItem('tooltek_session'); return false; }
+    return s;
+  } catch { return false; }
+}
+
+// ══════════════════════════════════════════════════════
+//  INICIO — verificar sesión al cargar
+// ══════════════════════════════════════════════════════
+window.onload = () => {
+  const sesion = verificarSesion();
+  if (sesion) {
+    iniciarApp(sesion.usuario);
+  }
+  // Si no hay sesión, la pantalla de login ya está visible
+};
+
+// ══════════════════════════════════════════════════════
+//  APP
+// ══════════════════════════════════════════════════════
 let cheques = [];
 let chartMeses = null, chartMotivos = null;
 let sortState = { col: null, dir: 'asc' };
-
-window.onload = () => cargarDesdeNube();
 
 function showLoading(s) {
   document.getElementById('loading').classList.toggle('show', s);
@@ -868,8 +1093,9 @@ function showLoading(s) {
 async function cargarDesdeNube() {
   showLoading(true);
   try {
-    const res = await fetch(WEB_APP_URL);
-    const data = await res.json();
+    const res = await fetch(WEB_APP_URL + '?apiKey=' + encodeURIComponent(_k));
+    const json = await res.json();
+    const data = json.ok ? json.data : json; // compatibilidad con respuesta antigua
     const cleanDate = v => !v ? '' : (typeof v === 'string' && v.includes('T')) ? v.split('T')[0] : v;
     const getVal = (c, keys) => { for(let k of keys) if(c[k]!=null) return c[k]; return ''; };
     cheques = data.map(c => ({
@@ -1532,7 +1758,8 @@ async function registrarCheque(e) {
     fechaRegularizacion:'',
     observaciones:document.getElementById('observaciones').value,
     estado:document.getElementById('estado').value,
-    imagen:img
+    imagen:img,
+    apiKey:_k
   };
   showLoading(true);
   try {
@@ -1553,7 +1780,8 @@ async function guardarEdicion(e) {
     motivo:document.getElementById('edit-motivo').value,
     fechaRechazo:document.getElementById('edit-fechaRechazo').value,
     fechaRegularizacion:document.getElementById('edit-fechaRegularizacion').value,
-    observaciones:document.getElementById('edit-observaciones').value
+    observaciones:document.getElementById('edit-observaciones').value,
+    apiKey:_k
   };
   showLoading(true);
   try {
