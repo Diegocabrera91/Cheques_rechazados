@@ -828,7 +828,19 @@ body { font-family: 'Inter', sans-serif; font-size: 14px; background: var(--bg);
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
           Recargar vendedores
         </button>
+        <!-- BOTÓN ASIGNACIÓN AUTOMÁTICA -->
+        <button id="btn-auto-asignar" onclick="autoAsignarVendedores(false)" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;" title="Asigna vendedor automáticamente leyendo la tabla de la hoja Vendedor">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Auto-asignar por RUT
+        </button>
+        <button id="btn-auto-asignar-forzar" onclick="autoAsignarVendedores(true)" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:#fff7ed;color:#d97706;border:1px solid #fcd34d;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;" title="Sobreescribe incluso los cheques que ya tienen vendedor asignado">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Forzar re-asignación
+        </button>
       </div>
+
+      <!-- RESULTADO DE AUTO-ASIGNACIÓN -->
+      <div id="auto-asign-resultado" style="display:none;padding:12px 16px;border-radius:var(--radius-md);margin-bottom:14px;font-size:13px;"></div>
 
       <!-- PANEL ASIGNACIÓN MASIVA -->
       <div id="asign-panel" style="background:var(--white);border:1.5px solid var(--teal-light);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:18px;box-shadow:var(--shadow-sm);">
@@ -1944,6 +1956,73 @@ async function asignarVendedorMasivo() {
     alert('❌ Error al asignar vendedor.');
   } finally {
     showLoading(false);
+  }
+}
+
+// ── AUTO-ASIGNACIÓN POR RUT ──────────────────────────────────────────────
+// Llama al Apps Script que lee la hoja Vendedor (col A=RUT, col C=Vendedor)
+// y rellena automáticamente la col D de Hoja 1
+async function autoAsignarVendedores(forzar) {
+  if (rolActual !== 'admin') { alert('Solo los administradores pueden asignar vendedores.'); return; }
+
+  const msg = forzar
+    ? '¿Forzar re-asignación?\nSobreescribirá el vendedor de TODOS los cheques, incluyendo los que ya tienen uno asignado.'
+    : '¿Asignar vendedores automáticamente?\nSolo se rellenarán los cheques que aún no tienen vendedor asignado.';
+  if (!confirm(msg)) return;
+
+  // Deshabilitar botones durante el proceso
+  const btnN = document.getElementById('btn-auto-asignar');
+  const btnF = document.getElementById('btn-auto-asignar-forzar');
+  if (btnN) { btnN.disabled = true; btnN.textContent = 'Procesando...'; }
+  if (btnF) { btnF.disabled = true; }
+
+  showLoading(true);
+  try {
+    const res  = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'autoAsignar', forzar: forzar, apiKey: _k })
+    });
+    const json = await res.json();
+
+    const div = document.getElementById('auto-asign-resultado');
+    if (json.ok) {
+      const sinMatch = json.sinMatch || [];
+      let html = `<div style="display:flex;align-items:flex-start;gap:10px;">
+        <span style="font-size:18px;">✅</span>
+        <div>
+          <strong style="color:#16a34a;">${json.asignados} cheque(s) asignado(s) automáticamente</strong>`;
+
+      if (sinMatch.length > 0) {
+        html += `<div style="margin-top:6px;color:#d97706;">
+          ⚠️ ${sinMatch.length} RUT(s) sin vendedor en la tabla: 
+          <span style="font-family:monospace;font-size:11px;">${sinMatch.join(', ')}</span>
+        </div>`;
+      } else {
+        html += `<div style="margin-top:4px;color:#64748b;font-size:12px;">Todos los RUTs encontraron vendedor en la tabla.</div>`;
+      }
+      html += `</div></div>`;
+
+      div.innerHTML  = html;
+      div.style.display    = 'block';
+      div.style.background = '#f0fdf4';
+      div.style.border     = '1px solid #86efac';
+
+      // Recargar datos para reflejar cambios
+      setTimeout(() => cargarDesdeNube(), 1500);
+    } else {
+      div.innerHTML        = `❌ Error: ${json.msg}`;
+      div.style.display    = 'block';
+      div.style.background = '#fef2f2';
+      div.style.border     = '1px solid #fca5a5';
+    }
+  } catch(err) {
+    alert('❌ Error de conexión al auto-asignar.');
+    console.error(err);
+  } finally {
+    showLoading(false);
+    if (btnN) { btnN.disabled = false; btnN.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Auto-asignar por RUT'; }
+    if (btnF) { btnF.disabled = false; }
   }
 }
 </script>
