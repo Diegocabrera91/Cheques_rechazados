@@ -536,6 +536,10 @@ body { font-family: 'Inter', sans-serif; font-size: 14px; background: var(--bg);
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         Informes
       </button>
+      <button class="nav-btn" id="nav-btn-asignacion" onclick="cambiarVista('asignacion',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><line x1="18" y1="8" x2="22" y2="8"/><line x1="20" y1="6" x2="20" y2="10"/></svg>
+        Vendedores
+      </button>
     </nav>
     <div class="topbar-right">
       <div class="user-chip">
@@ -805,6 +809,83 @@ body { font-family: 'Inter', sans-serif; font-size: 14px; background: var(--bg);
 
       </div>
     </div>
+
+    <!-- ══ VISTA: ASIGNACIÓN DE VENDEDORES ══ -->
+    <div id="view-asignacion" class="view">
+
+      <!-- banner solo admin -->
+      <div id="asign-viewer-banner" class="viewer-banner" style="margin-bottom:18px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Solo los <strong style="margin:0 3px;">administradores</strong> pueden asignar vendedores.
+      </div>
+
+      <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:20px;">
+        <div>
+          <div style="font-size:20px;font-weight:800;color:var(--text);">Asignación de Vendedores</div>
+          <div style="font-size:12px;color:var(--text-muted);">Selecciona cheques y asigna o cambia el vendedor en bloque</div>
+        </div>
+        <button class="btn-icon" onclick="cargarVendedoresDesdeNube()" style="margin-left:auto;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Recargar vendedores
+        </button>
+      </div>
+
+      <!-- PANEL ASIGNACIÓN MASIVA -->
+      <div id="asign-panel" style="background:var(--white);border:1.5px solid var(--teal-light);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:18px;box-shadow:var(--shadow-sm);">
+        <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><line x1="18" y1="8" x2="22" y2="8"/><line x1="20" y1="6" x2="20" y2="10"/></svg>
+          Asignación masiva
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:200px;">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);">Vendedor a asignar</label>
+            <select id="asign-vendedor-sel" class="filter-sel" style="font-size:13px;padding:9px 12px;">
+              <option value="">-- Selecciona vendedor --</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;min-width:160px;">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);">Filtrar por cliente</label>
+            <select id="asign-filter-cliente" class="filter-sel" style="font-size:13px;padding:9px 12px;" onchange="renderTablaAsignacion()">
+              <option value="">Todos los clientes</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;min-width:160px;">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);">Solo sin vendedor</label>
+            <label class="check-label" style="padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);">
+              <input type="checkbox" id="asign-filter-sin" onchange="renderTablaAsignacion()" style="width:auto;accent-color:var(--teal);">
+              Sin vendedor asignado
+            </label>
+          </div>
+          <button id="btn-asignar-masivo" onclick="asignarVendedorMasivo()" style="padding:10px 20px;background:var(--teal);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;white-space:nowrap;height:42px;">
+            Asignar a seleccionados
+          </button>
+        </div>
+        <div id="asign-seleccion-info" style="margin-top:10px;font-size:12px;color:var(--text-muted);">
+          Selecciona cheques de la tabla para asignarles un vendedor.
+        </div>
+      </div>
+
+      <!-- TABLA ASIGNACIÓN -->
+      <div class="table-wrap">
+        <table class="data-table" id="tabla-asignacion">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="asign-check-all" onchange="seleccionarTodosAsign()" style="width:auto;cursor:pointer;accent-color:var(--teal);"></th>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>RUT</th>
+              <th>N° Cheque</th>
+              <th>Monto</th>
+              <th>F. Rechazo</th>
+              <th>Estado</th>
+              <th>Vendedor actual</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-asignacion"></tbody>
+        </table>
+      </div>
+
+    </div><!-- /view-asignacion -->
 
   </main>
 </div>
@@ -1663,6 +1744,215 @@ function imprimirFichaCheque(id) {
   const w = window.open('','_blank','width=820,height=1050');
   if(!w) return alert('El navegador bloqueó la ventana emergente. Permita las ventanas emergentes para este sitio.');
   w.document.write(html); w.document.close();
+}
+
+// ══════════════════════════════════════════════════════
+//  ASIGNACIÓN DE VENDEDORES
+// ══════════════════════════════════════════════════════
+
+let vendedoresLista = []; // cache de vendedores desde Sheet
+
+// Carga la lista de vendedores desde la hoja "Vendedores"
+async function cargarVendedoresDesdeNube() {
+  try {
+    const res  = await fetch(WEB_APP_URL + '?apiKey=' + encodeURIComponent(_k) + '&action=vendedores');
+    const json = await res.json();
+    if (json.ok && json.vendedores) {
+      vendedoresLista = json.vendedores;
+      poblarSelectoresVendedor();
+    } else {
+      console.warn('No se pudo cargar vendedores:', json.msg);
+    }
+  } catch(e) { console.error('Error cargando vendedores:', e); }
+}
+
+// Puebla todos los selectores de vendedor en la app
+function poblarSelectoresVendedor() {
+  const ids = ['asign-vendedor-sel', 'filter-vendedor', 'informe-vendedor-sel', 'edit-vendedor-datalist'];
+  const selectIds = ['asign-vendedor-sel', 'filter-vendedor', 'informe-vendedor-sel'];
+
+  selectIds.forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const firstOpt = sel.options[0]; // conservar primer option vacío
+    sel.innerHTML = '';
+    sel.appendChild(firstOpt);
+    vendedoresLista.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v; sel.appendChild(o);
+    });
+  });
+
+  // Datalist para el input de texto del modal edición
+  let dl = document.getElementById('vendedor-datalist');
+  if (!dl) { dl = document.createElement('datalist'); dl.id = 'vendedor-datalist'; document.body.appendChild(dl); }
+  dl.innerHTML = vendedoresLista.map(v => `<option value="${v}">`).join('');
+  const editVend = document.getElementById('edit-vendedor');
+  if (editVend) editVend.setAttribute('list', 'vendedor-datalist');
+  const newVend  = document.getElementById('vendedor');
+  if (newVend)  newVend.setAttribute('list', 'vendedor-datalist');
+}
+
+// Fallback: si no hay vendedores desde nube, usa los que ya están en cheques
+function poblarFiltroVendedores() {
+  const sel    = document.getElementById('filter-vendedor');
+  const selInf = document.getElementById('informe-vendedor-sel');
+  const selAsign = document.getElementById('asign-vendedor-sel');
+
+  // Vendedores únicos que ya existen en los cheques cargados
+  const desdeSheet = [...new Set(cheques.map(c => c.vendedor).filter(v => v && v.trim()))].sort();
+  // Fusionar con los de la lista nube (sin duplicar)
+  const todos = [...new Set([...vendedoresLista, ...desdeSheet])].sort();
+
+  [sel, selInf, selAsign].forEach(s => {
+    if (!s) return;
+    const first = s.options[0];
+    s.innerHTML = '';
+    s.appendChild(first);
+    todos.forEach(v => { const o = document.createElement('option'); o.value=v; o.textContent=v; s.appendChild(o); });
+  });
+
+  // Poblar filtro de cliente para panel asignación
+  const selCliente = document.getElementById('asign-filter-cliente');
+  if (selCliente) {
+    const first = selCliente.options[0];
+    selCliente.innerHTML = '';
+    selCliente.appendChild(first);
+    const clientes = [...new Set(cheques.map(c => c.cliente).filter(Boolean))].sort();
+    clientes.forEach(cl => { const o = document.createElement('option'); o.value=cl; o.textContent=cl; selCliente.appendChild(o); });
+  }
+
+  // Datalist
+  let dl = document.getElementById('vendedor-datalist');
+  if (!dl) { dl = document.createElement('datalist'); dl.id = 'vendedor-datalist'; document.body.appendChild(dl); }
+  dl.innerHTML = todos.map(v => `<option value="${v}">`).join('');
+  const editVend = document.getElementById('edit-vendedor');
+  if (editVend) editVend.setAttribute('list', 'vendedor-datalist');
+  const newVend = document.getElementById('vendedor');
+  if (newVend) newVend.setAttribute('list', 'vendedor-datalist');
+
+  renderTablaAsignacion();
+}
+
+// Render tabla de asignación con filtros
+function renderTablaAsignacion() {
+  const filterCliente = (document.getElementById('asign-filter-cliente')||{}).value || '';
+  const filterSin     = (document.getElementById('asign-filter-sin')||{}).checked || false;
+
+  let datos = cheques.filter(c => {
+    const matchCliente = !filterCliente || c.cliente === filterCliente;
+    const matchSin     = !filterSin     || !c.vendedor || !c.vendedor.trim();
+    return matchCliente && matchSin;
+  });
+
+  const tbody = document.getElementById('tbody-asignacion');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  actualizarInfoSeleccionAsign();
+
+  datos.forEach(c => {
+    const tr = document.createElement('tr');
+    const tieneVendedor = c.vendedor && c.vendedor.trim();
+    tr.innerHTML = `
+      <td style="text-align:center"><input type="checkbox" class="asign-select" data-id="${c.id}"
+        style="width:auto;cursor:pointer;accent-color:var(--teal);" onchange="actualizarInfoSeleccionAsign()"></td>
+      <td>${c.id||'-'}</td>
+      <td style="font-weight:600;">${c.cliente||'-'}</td>
+      <td>${c.rut||'-'}</td>
+      <td>${c.numeroCheque||'-'}</td>
+      <td>$${Number(c.monto||0).toLocaleString('es-CL')}</td>
+      <td>${c.fechaRechazo||'-'}</td>
+      <td><span class="badge badge-${(c.estado||'pendiente').toLowerCase()}">${c.estado||'Pendiente'}</span></td>
+      <td>${tieneVendedor
+        ? `<span class="vendedor-chip">🧑‍💼 ${c.vendedor}</span>`
+        : `<span style="color:var(--text-faint);font-size:11px;font-style:italic;">Sin asignar</span>`
+      }</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function seleccionarTodosAsign() {
+  const checked = document.getElementById('asign-check-all').checked;
+  document.querySelectorAll('.asign-select').forEach(cb => cb.checked = checked);
+  actualizarInfoSeleccionAsign();
+}
+
+function actualizarInfoSeleccionAsign() {
+  const seleccionados = document.querySelectorAll('.asign-select:checked').length;
+  const total         = document.querySelectorAll('.asign-select').length;
+  const info = document.getElementById('asign-seleccion-info');
+  if (!info) return;
+  if (seleccionados === 0) {
+    info.textContent = `${total} cheques mostrados. Selecciona uno o más para asignarles un vendedor.`;
+    info.style.color = 'var(--text-muted)';
+  } else {
+    info.innerHTML = `<strong style="color:var(--teal);">${seleccionados} cheque(s) seleccionado(s)</strong> — elige un vendedor arriba y haz clic en "Asignar a seleccionados".`;
+  }
+}
+
+// Asignación masiva — llama al Apps Script
+async function asignarVendedorMasivo() {
+  if (rolActual !== 'admin') { alert('Solo los administradores pueden asignar vendedores.'); return; }
+
+  const vendedor = document.getElementById('asign-vendedor-sel').value;
+  if (!vendedor) { alert('Selecciona un vendedor primero.'); return; }
+
+  const checks = document.querySelectorAll('.asign-select:checked');
+  if (!checks.length) { alert('Selecciona al menos un cheque.'); return; }
+
+  const ids = Array.from(checks).map(cb => cb.dataset.id);
+  const clientes = [...new Set(
+    ids.map(id => { const c = cheques.find(x => x.id == id); return c ? c.cliente : ''; }).filter(Boolean)
+  )];
+
+  const confirmar = confirm(
+    `¿Asignar "${vendedor}" a ${ids.length} cheque(s)?\n` +
+    `Clientes: ${clientes.slice(0,5).join(', ')}${clientes.length > 5 ? '...' : ''}`
+  );
+  if (!confirmar) return;
+
+  showLoading(true);
+  try {
+    await fetch(WEB_APP_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'asignarVendedor', ids, vendedor, apiKey: _k })
+    });
+
+    // Actualizar localmente sin esperar recarga completa
+    ids.forEach(id => {
+      const c = cheques.find(x => x.id == id);
+      if (c) c.vendedor = vendedor;
+    });
+    actualizarVistas();
+    renderTablaAsignacion();
+    alert(`✅ Vendedor "${vendedor}" asignado a ${ids.length} cheque(s) correctamente.`);
+
+    // Recargar desde nube para confirmar
+    setTimeout(() => cargarDesdeNube(), 2000);
+
+  } catch(err) {
+    alert('❌ Error al asignar vendedor.');
+  } finally {
+    showLoading(false);
+  }
+}
+
+// Extender cambiarVista para mostrar/ocultar banner admin en asignación
+const _cambiarVista_orig = cambiarVista;
+function cambiarVista(vista, btn) {
+  _cambiarVista_orig(vista, btn);
+  if (vista === 'asignacion') {
+    const banner = document.getElementById('asign-viewer-banner');
+    if (banner) banner.classList.toggle('show', rolActual !== 'admin');
+    const btnAsignar = document.getElementById('btn-asignar-masivo');
+    if (btnAsignar) btnAsignar.disabled = rolActual !== 'admin';
+    renderTablaAsignacion();
+    // Cargar vendedores desde nube si aún no se han cargado
+    if (vendedoresLista.length === 0) cargarVendedoresDesdeNube();
+  }
 }
 </script>
 </body>
