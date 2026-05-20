@@ -1515,8 +1515,15 @@ function cambiarVista(vista, btn) {
   document.getElementById('view-'+vista).classList.add('active');
   btn.classList.add('active');
   if(vista==='dashboard') renderDashboard(cheques);
+  if(vista==='asignacion') {
+    const banner = document.getElementById('asign-viewer-banner');
+    if(banner) banner.classList.toggle('show', rolActual !== 'admin');
+    const btnAsignar = document.getElementById('btn-asignar-masivo');
+    if(btnAsignar) btnAsignar.disabled = rolActual !== 'admin';
+    renderTablaAsignacion();
+    if(vendedoresLista.length === 0) cargarVendedoresDesdeNube();
+  }
 }
-
 // ── MODALES ──
 function abrirModalNuevo() { document.getElementById('modalNuevo').classList.add('open'); }
 function cerrarModalNuevo() { document.getElementById('modalNuevo').classList.remove('open'); }
@@ -1937,21 +1944,6 @@ async function asignarVendedorMasivo() {
     alert('❌ Error al asignar vendedor.');
   } finally {
     showLoading(false);
-  }
-}
-
-// Extender cambiarVista para mostrar/ocultar banner admin en asignación
-const _cambiarVista_orig = cambiarVista;
-function cambiarVista(vista, btn) {
-  _cambiarVista_orig(vista, btn);
-  if (vista === 'asignacion') {
-    const banner = document.getElementById('asign-viewer-banner');
-    if (banner) banner.classList.toggle('show', rolActual !== 'admin');
-    const btnAsignar = document.getElementById('btn-asignar-masivo');
-    if (btnAsignar) btnAsignar.disabled = rolActual !== 'admin';
-    renderTablaAsignacion();
-    // Cargar vendedores desde nube si aún no se han cargado
-    if (vendedoresLista.length === 0) cargarVendedoresDesdeNube();
   }
 }
 </script>
